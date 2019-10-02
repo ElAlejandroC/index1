@@ -1,35 +1,49 @@
 const express = require('express');
 const app = express();
-var arreglo = [];//Arreglo 1
-var persona={}//Arreglo de persona
+const pokedex =require('./pokedex.json');
+//var arreglo = [];//Arreglo 1
+//var persona={}//Arreglo de persona
 
+// P O K E M O N -----------------------******----------------- Practica
 app.get("/", (req,res) => {
-    res.send("Chale");
+    console.log("req")
+    req.send=("Busqueda pokemon");
 });
 
-app.get("/:id/:Edad/:Nombre",(req , res) =>{
-    if (req.url!= "/favicon.ico"){
+app.get('/pokedex',(req, res)=>{
+    const id = params.id;
+    res.json = (pokemon.pokedex);
+});
+app.get('/pokedex/:id',(req,res)=>{
+    var datos =req.params.id;
+    res.send(pokedex.pokemon[datos-1]);
+});
+//app.get("/pokedex/name/:name", (req, res) =>{
+//    const filterCombiner = (d, filterArray) => {
+//  for (let fn of filterArray) {
+//    if (!fn(d)) {
+//      return false;
+//    }
+//  }
+//  return true;
+//}
+//const filterArray1 = []
+//  d => d.name === req.params.id,);
+
+
+  app.get("/pokedex/image/:id", (req, res) =>{
     var dato = req.params.id;
-    var dato1 = req.params.Edad;
-    var dato2 = req.params.Nombre;
-    console.log(dato);
-    console.log(dato1);
-    console.log(dato2);
+    const img=pokedex.pokemon[dato-1].img;
+     res.send("<img src='"+img+"'/>");
+    });
 
-    arreglo.push(dato);
-    persona.Edad = dato1
-    persona.Nombre=dato2;
+    app.get("/pokedex/random", (req, res) =>{
+        var rand = Math.floor(Math.random() * 151);
+        res.send(pokedex.pokemon[rand]);
+        });
 
-    res.send(dato);
-
-    console.log(arreglo);
-    console.log(persona);
-}
-});
-
-
-
+// P O K E M O N -----------------------******----------------- Practica
 app.listen(3000, () => {
-    console.log("Server is running...");
+    console.log("La luz llego a casa");
 
 });
