@@ -1,44 +1,103 @@
-const pokedex = require('../pokedex.json').pokemon;
-const db = require('../config/database')
-const express =require('express');
-const router= express.Router();
+const db = require('../config/database');
+const express = require('express');
+const pokemon = express.Router();
 
-router.get("/", (req, res) => {
-    //res.status(200).json(pokedex);
-    db.query("SElECT * FROM pokemon").then(rows=>{
+pokemon.get("/", (req, res) => {
+    db.query("SELECT * FROM pokemon").then(rows => {
         res.status(200);
         res.json(rows);
-    }).catch(err =>{
+    }).catch(err => {
         console.log(err);
         res.status(500);
-        res.send("Ocurrio algo mal, F")
+        res.send("Ocurrió algo mal");
     });
 });
 
-router.post("", (req, res) => {
-    res.json(req.body.x);
+pokemon.post("/", (req, res) => {
+    query = "INSERT INTO pokemon (pok_name, pok_height, pok_weight, pok_base_experience) ";
+    query += `VALUES ('${req.body.pok_name}', ${req.body.pok_height}, ${req.body.pok_weight}, ${req.body.pok_base_experience})`;
+    db.query(query).then(rows => {
+        if (rows.affectedRows > 0) {
+            res.status(201);
+            res.send("Pokemon añadido con éxito");
+        }
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.send("Ocurrió un error al añadir el pokemon");
+    });
 });
-//SUPEREFEEEEEEEE
-
-router.get("/image/:id", (req, res) => {
-    const img = pokedex[req.params.id - 1].img;
-    res.send("<img src='" + img + "'>");
+pokemon.delete("/:id([0-9]{1,3})", (req, res) => {
+    query = `DELETE FROM pokemon WHERE pok_id=' $(req.params.id)'`;
+    db.query(query).then(rows => {
+        res.status(204);
+        res.send("Pokemon eliminado Correctamente UwU");
+    }).catch(err => {
+        console.log(err)
+        res.status(500);
+        res.send("Ocurrió algo mal");
+    })
 });
 
-router.get("/\\brandom\\b", (req, res) => {
-    const pokemon = pokedex[Math.floor((Math.random()) * 151)];
-    res.json(pokemon);
+pokemon.put("/:id([0-9]{1,3})", (req, res) => {
+    const columns = Object.keys(req.body);
+    const values = Object.values(req.body);
+    query = "UPDATE pokemon SET ";
+    for (let i = 0; i < columns.length; i++) {
+        query += `${columns[i]} = `;
+        query += isNaN(values[i]) ? `'${values[i]}'` : `${values[i]}`;
+        query += (i + 1 < columns.length) ? ", " : " ";
+    }
+    query += `WHERE pok_id=${req.params.id}`;
+    res.send(query);
 });
 
-router.get("/:name([A-Za-z]+)", (req, res) => {
+pokemon.get("/\\brandom\\b", (req, res) => {
+    const id = Math.floor((Math.random()) * 722);
+    const query = `SELECT * FROM pokemon WHERE pok_id='${id}'`;
+    db.query(query).then(rows => {
+        res.status(200);
+        res.json(rows);
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.send("Ocurrió algo mal");
+    });
+});
+
+pokemon.get("/:name([A-Za-z]+)", (req, res) => {
     const name = req.params.name;
-    const pokemon = pokedex.filter((pokemon) => pokemon.name == name);
-    res.json(pokemon);
+    const query = `SELECT * FROM pokemon WHERE pok_name='${name}'`;
+    db.query(query).then(rows => {
+        if (rows.length > 0) {
+            res.status(200);
+            res.json(rows);
+        }
+        res.status(404);
+        res.send("No se encontró al pokemon");
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.send("Ocurrió algo mal");
+    });
 });
 
-router.get("/:id([0-9]{1,3})", (req, res) => {
+
+pokemon.get("/:id([0-9]{1,3})", (req, res) => {
     const id = req.params.id;
-    res.json(pokedex[id - 1]);
+    const query = `SELECT * FROM pokemon WHERE pok_id=${id}`;
+    db.query(query).then(rows => {
+        if (rows.length > 0) {
+            res.status(200);
+            res.json(rows);
+        }
+        res.status(404);
+        res.send("No se encontró al pokemon");
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.send("Ocurrió algo mal");
+    });
 });
 
-module.exports = router;
+module.exports = pokemon;
